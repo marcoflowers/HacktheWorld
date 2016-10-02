@@ -92,3 +92,4 @@ ENV/
 node_modules
 .DS_Store
 *.swap
+*.swp
