@@ -1,186 +1,22 @@
-
-<!DOCTYPE html>
-<meta charset="utf-8">
-<style>
-
-text {
-font: 10px sans-serif;
-}
-
-.d3-tip {
-	line-height: 1;
-	font-weight: bold;
-padding: 12px;
-background: rgba(0, 0, 0, 0.8);
-color: #fff;
-       border-radius: 2px;
-}
-
-/* Creates a small triangle extender for the tooltip */
-.d3-tip:after {
-	box-sizing: border-box;
-display: inline;
-	 font-size: 10px;
-width: 100%;
-       line-height: 1;
-color: rgba(0, 0, 0, 0.8);
-content: "\25BC";
-position: absolute;
-	  text-align: center;
-}
-
-/* Style northward tooltips differently */
-.d3-tip.n:after {
-margin: -1px 0 0 0;
-top: 100%;
-left: 0;
-}
-
-</style>
-<head>
-<script src = "https://d3js.org/d3.v3.js"></script>
-<script src = "https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src = "tooltip.js"></script>
-<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-<script src="/static/index.js"></script>
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-</head>
-<body>
-<script>
-//Marco's code
-
-var socket = io();
-socket.on('new_http', function (data) {
-  data = JSON.parse(data);
-  update({name: data.host});
-});
-
-
-
-var diameter = 960,
-format = d3.format(",d"),
-color = d3.scale.category20b();
-
-
-var bubble = d3.layout.pack()
-    .sort(null)
-    .size([diameter, diameter])
-    .padding(10);
-
-var svg = d3.select("body").append("svg")
-    .attr("width", diameter)
-    .attr("height", diameter)
-    .attr("class", "bubble");
-
-// Returns a flattened hierarchy containing all leaf nodes under the root.
-function classes(root) {
-    var classes = [];
-
-    function recurse(name, node) {
-        if (node.children) node.children.forEach(function (child) {
-            recurse(node.name, child);
-        });
-        else classes.push({
-            packageName: name,
-            className: node.name,
-            value: node.size
-        });
-    }
-
-    recurse(null, root);
-    return {
-        children: classes
-    };
-}
-
-var indexes = {};
-var host_data = {children: []};
-var root = host_data;
-var node = svg.selectAll(".node");
-
-
-function update(new_data) {
-  if(indexes[new_data.name] != undefined) {
-    host_data.children[indexes[new_data.name]].size++;
-  }
-  else {
-    indexes[new_data.name] = host_data.children.length;
-    host_data.children.push({name: new_data.name, size: 1});
-  }
-  console.log(host_data);
-  console.log(indexes)
-
-  root = host_data;
-
-  var node = svg.selectAll(".node")
-    .data(
-            bubble.nodes(classes(root)).filter(function (d){return !d.children;}),
-            function(d) {return d.className} // key data based on className to keep object constancy
-        );
-
-    // capture the enter selection
-    var nodeEnter = node.enter()
-        .append("g")
-        .attr("class", "node")
-        .attr("transform", function (d) {
-          console.log(d)
-            return "translate(" + d.x + "," + d.y + ")";
-        });
-
-    // re-use enter selection for circles
-    nodeEnter
-        .append("circle")
-        .attr("r", function (d) {return d.r;})
-        .style("fill", function (d, i) {return color(i);})
-
-    // re-use enter selection for titles
-    nodeEnter
-        .append("title")
-        .text(function (d) {
-            return d.className + ": " + format(d.value);
-        });
-
-    node.select("circle")
-        .transition().duration(100)
-        .attr("r", function (d) {
-            return d.r;
-        })
-        .style("fill", function (d, i) {
-            return color(i);
-        });
-
-    node.transition().attr("class", "node")
-        .attr("transform", function (d) {
-        return "translate(" + d.x + "," + d.y + ")";
-    });
-
-    node.exit().remove();
-
-    // Returns a flattened hierarchy containing all leaf nodes under the root.
-    function classes(root) {
-        var classes = [];
-
-        function recurse(name, node) {
-            if (node.children) node.children.forEach(function (child) {
-                recurse(node.name, child);
-            });
-            else classes.push({
-                packageName: name,
-                className: node.name,
-                value: node.size
-            });
-        }
-
-        recurse(null, root);
-        return {
-            children: classes
-        };
-    }
-
-}
-d3.select(self.frameElement).style("height", diameter + "px");
-
-</script>
-</body>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<!doctype html>
+<html>
+  <head>
+    <title>Page Counts</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script type="text/babel" src="/static/history.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="/static/bubbles.css" rel="stylesheet">
+  </head>
+  <body>
+   <div class="col-md-12">
+     <h1 class="text-center">Wifi History Page</h1>
+   </div>
+   <div class="col-md-12" id="bubbles"></div>
+  </body>
+  <script src = "https://d3js.org/d3.v3.js"></script>
+  <script src = "https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src = "tooltip.js"></script>
+  <script src = "bubbles.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 </html>
