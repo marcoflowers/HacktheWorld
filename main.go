@@ -66,13 +66,13 @@ func processPacket(packet gopacket.Packet) *processedPacket {
 			lines := strings.Split(string(applicationLayer.Payload()), "\n")
 
 			method := strings.Split(lines[0], " ")[0]
-			uri := strings.Split(lines[0], " ")[1]
+			uri := strings.TrimSpace(strings.Split(lines[0], " ")[1])
 			var host string
 			var referred bool
 
 			for _, line := range lines[1:] {
 				if strings.Contains(line, "Host:") {
-					host = strings.Split(line, " ")[1]
+					host = strings.TrimSpace(strings.Split(line, " ")[1])
 				} else if strings.Contains(line, "Referer:") {
 					referred = true
 				}
