@@ -1,0 +1,65 @@
+<html>
+<head>
+	<script src = "https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src = "https://d3js.org/d3.v4.js"></script>
+</head>
+
+<body>
+<!--	<svg width="720" height="120">
+	  <circle id="circ1" cx="40" cy="60" r="10"></circle>
+	  <circle id="circ2" cx="80" cy="60" r="10"></circle>
+	  <circle id="circ3" cx="120" cy="60" r="10"></circle>
+	</svg> -->
+
+	<script>
+
+		//Random JSON array for testin
+		var jsonArr = [];
+
+		for(i = 0; i < 30; i++){
+			jsonArr.push({
+				      Name: "Name: " + i, 
+				      Size: (i+5)*5
+				      });
+		}
+
+		j = 20; 
+		svg = d3.select("body").append("svg");
+		svg.append("circle")
+			.attr("id", "circle5")
+			.attr("cx", 160)
+			.attr("cy", 60)
+			.attr("r", 50);
+
+		svg.selectAll("circle")
+			.data(jsonArr)
+			.enter().append("circle")
+			  .attr("cx", 70)
+			  .attr("cy", j += 20)
+			  .attr("r", function(d) {return d.Size});
+
+
+
+
+		var circ3 = document.getElementById("circle5");
+		var circ5 = d3.select(circ3);
+		circ5.style("fill", "red");
+		/*var diameter = 960,
+			format = d3.format(",d"),
+			//color = d3.scale.category20c();
+			color = 30
+
+
+		var bubble = d3.layout.pack()
+	    		.sort(null)
+	    		.size([diameter, diameter])
+	    		.padding(1.5);
+
+		var svg = d3.select("body").append("svg")
+			.attr("width", 10)
+			.attr("height",10)
+			.attr("class", "bubble"); */ 
+		 
+	</script>
+</body>
+</html>
