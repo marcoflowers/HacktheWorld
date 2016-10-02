@@ -34,9 +34,9 @@
 		svg.selectAll("circle")
 			.data(jsonArr)
 			.enter().append("circle")
-			  .attr("cx", 70)
-			  .attr("cy", j += 20)
-			  .attr("r", function(d) {return d.Size});
+			  .attr("cx", function(d) {return j += 30})
+			  .attr("cy", function(d) {return 70})
+			  .attr("r", function(d) {return d.Size/5});
 
 
 
@@ -44,6 +44,7 @@
 		var circ3 = document.getElementById("circle5");
 		var circ5 = d3.select(circ3);
 		circ5.style("fill", "red");
+
 		/*var diameter = 960,
 			format = d3.format(",d"),
 			//color = d3.scale.category20c();
