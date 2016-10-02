@@ -5,7 +5,7 @@ socket.on('new_http', function (data) {
 });
 
 
-var historyList = {};
+var historyList = {"test":[]};
 
 
 function eventHandler(data)
@@ -26,6 +26,48 @@ function eventHandler(data)
         {
             historyList[mac] = [data]
         }
+        ReactDOM.render(
+          <Hello data={historyList}/>,
+          document.getElementById('example')
+        );
+
     }
     console.log(historyList)
 }
+
+var Hello = React.createClass({
+    render: function() {
+        var names = Object.keys(this.props.data);
+        var data = this.props.data;
+        return (
+            <ul>
+
+                {names.map(function(name, index){
+                    return(
+                            <HistoryList key= {index} data={data[name]} />
+                            );
+                  })}
+            </ul>
+        )
+    }
+});
+
+var HistoryList = React.createClass({
+    render: function() {
+        var names = this.props.data;
+        console.log(names)
+        return (
+            <ul>
+                {names.map(function(name, index){
+                    return <li key={ index }>{name.host}{name.uri} - {name.ts}</li>;
+                  })}
+            </ul>
+        )
+    }
+
+})
+
+ReactDOM.render(
+  <Hello data={historyList}/>,
+  document.getElementById('example')
+);
