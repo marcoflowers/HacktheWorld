@@ -7,10 +7,40 @@ text {
 font: 10px sans-serif;
 }
 
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+
 </style>
 <head>
 	<script src = "https://d3js.org/d3.v3.js"></script>
 	<script src = "https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src = "tooltip.js"></script>
 </head>
 <body>
 <script>
@@ -23,14 +53,25 @@ var diameter = 960,
 	.sort(null)
 .size([diameter, diameter])
 	.padding(1.5);
+	
 
 	var svg = d3.select("body").append("svg")
 	.attr("width", diameter)
 	.attr("height", diameter)
 	.attr("class", "bubble");
 
+
 	d3.json("flare.json", function(error, root) {
 			if (error) throw error;
+
+			var tip = d3.tip()
+	  		  .attr('class', 'd3-tip')
+	  		  .offset([-10, 0])
+	  		  .html(function(d){
+	    		    return "<strong>Pakcage:</strong> <span style='color:red'>" + d.packageName + "</span>";
+	  		  })
+
+			svg.call(tip);
 
 			var node = svg.selectAll(".node")
 			.data(bubble.nodes(classes(root))
@@ -44,12 +85,15 @@ var diameter = 960,
 
 			node.append("circle")
 			.attr("r", function(d) { return d.r; })
+			.on('mouseover', tip.show)
+			.on('mouseout', tip.hide)
 			.style("fill", function(d) { return color(d.packageName); });
 
 			node.append("text")
 			.attr("dy", ".3em")
 			.style("text-anchor", "middle")
 			.text(function(d) { return d.className.substring(0, d.r / 3); });
+
 	});
 
 // Returns a flattened hierarchy containing all leaf nodes under the root.
