@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket demo</title>
+    </head>
+    <body>
+        <script>
+            var ws = new WebSocket("ws://127.0.0.1:8080/");
+            console.log("ws")
+            ws.onopen = function (event) {
+                ws.send("MESSAGE SENT"); 
+                console.log("sent message")              
+            };
+
+        </script>
+    </body>
+</html>

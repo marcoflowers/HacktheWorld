@@ -88,3 +88,6 @@ ENV/
 # Rope project settings
 .ropeproject
 *.pcap
+
+node_modules
+.DS_Store
