@@ -5,9 +5,9 @@ socket.on('new_http', function (data) {
 });
 
 
-var historyList = {"23:45:f4:23:3d":[{"host":"test.com", "uri":"/", "ts":12345, "mac":"23:45:f4:23:3d"}, {"host":"test2.com", "uri":"/adrian", "ts":12345, "mac":"23:45:f4:23:3d"}, {"host":"fds.com", "uri":"/adrian", "ts":12345, "mac":"23:45:f4:23:3d"}],"23:45:t4:23:3d":[{"host":"test.com", "uri":"/", "ts":12345, "mac":"23:45:f4:23:3d"}, {"host":"sfd.com", "uri":"/adrian", "ts":12345, "mac":"23:45:f4:23:3d"}, {"host":"sdf.com", "uri":"/adrian", "ts":12345, "mac":"23:45:f4:23:3d"}]};
+var historyList = {};
 
-
+var globalname = "";
 function eventHandler(data)
 {
     data = JSON.parse(data)
@@ -26,10 +26,7 @@ function eventHandler(data)
         {
             historyList[mac] = [data]
         }
-        ReactDOM.render(
-          <Hello data={historyList}/>,
-          document.getElementById('example')
-        );
+        reRender()
 
     }
     console.log(historyList)
@@ -53,14 +50,9 @@ var List = React.createClass({
     handleClick: function(name) {
         console.log("test")
         console.log(name)
-        ReactDOM.render(
-  <Hello data={historyList} item={name}/>,
-  document.getElementById('example2')
-);
-ReactDOM.render(
-  <List data={historyList} item={name}/>,
-  document.getElementById('example')
-);
+        globalname = name
+        reRender()
+    
 
   },
     render: function() {
@@ -104,7 +96,10 @@ var HistoryItem = React.createClass({
     render: function() {
         var urlList = this.props.data;
         var mac = this.props.mac
-        var length = urlList.length;
+        if(urlList == undefined)
+        {
+            urlList = []
+        }
         return (
             <ul>
                 <table className="table">
@@ -126,12 +121,17 @@ var HistoryItem = React.createClass({
 
 })
 
-ReactDOM.render(
-  <Hello data={historyList} item="23:45:f4:23:3d"/>,
+
+
+function reRender(){
+    ReactDOM.render(
+  <Hello data={historyList} item={globalname}/>,
   document.getElementById('example2')
 );
 
 ReactDOM.render(
-  <List data={historyList} item=""/>,
+  <List data={historyList} item={globalname}/>,
   document.getElementById('example')
 );
+}
+reRender()
