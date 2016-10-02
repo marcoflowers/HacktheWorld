@@ -1,14 +1,8 @@
 ---
-- hosts: HacktheWorld
-  sudo: yes
-
-  vars:
-    - homeDir: /home/ubuntu
-    - appDir : app
-    - repo: HacktheWorld
-    - account: mflowers
-    - privateKey: /Users/mflowers/.ssh/id_rsa
-
+- hosts: all
+  user: ubuntu
+  become: true
+  become_method: sudo
 
   tasks:
   - name: Install Packages
@@ -25,28 +19,27 @@
   - name: Install pm2
     npm: name=pm2 global=yes production=yes
 
-  - name: Create APP Directory
-    file: path={{homeDir}}/{{appDir}} state=directory
-
+  - name: Create the SSH public key file
+    copy: content=~/.ssh/id_rsa.pub dest=/root/.ssh/id_rsa.pub mode=0644
   - name: Copy Private Key
-    copy: src={{privateKey}} dest={{homeDir}} mode=0600
+    copy: src=~/.ssh/id_rsa dest=/root/.ssh/id_rsa mode=0600
 
   - name: Git Clone Repo
-    git: repo=git@github.com:{{account}}/{{repo}}.git dest={{homeDir}}/{{appDir}} update=yes force=yes accept_hostkey=yes key_file={{homeDir}}/id_rsa
+    git: repo=git@github.com:marcoflowers/HackTheWorld.git dest=/home/ubuntu/app update=yes force=yes accept_hostkey=yes key_file=/root/.ssh/id_rsa
     register: git_finished
 
   - name: Running NPM install
-    npm: path={{homeDir}}/{{appDir}}/server
+    npm: path=/home/ubuntu/app/server
     register: npm_finished
     when: git_finished.changed
 
   - name: Stop APP
     sudo_user: ubuntu
-    command: pm2 stop app chdir={{homeDir}}/{{appDir}}/server
+    command: pm2 stop process.js chdir=/home/ubuntu/app/server
     ignore_errors: yes
 
   - name: Start APP
     sudo_user: ubuntu
-    command: pm2 start index.js --name app chdir={{homeDir}}/{{appDir}}/server
+    command: pm2 start process.js --name app chdir=/home/ubuntu/app/server
     ignore_errors: yes
     when: npm_finished.changed
