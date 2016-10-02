@@ -8,93 +8,203 @@ font: 10px sans-serif;
 }
 
 .d3-tip {
-  line-height: 1;
-  font-weight: bold;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  border-radius: 2px;
+	line-height: 1;
+	font-weight: bold;
+padding: 12px;
+background: rgba(0, 0, 0, 0.8);
+color: #fff;
+       border-radius: 2px;
 }
 
 /* Creates a small triangle extender for the tooltip */
 .d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 10px;
-  width: 100%;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.8);
-  content: "\25BC";
-  position: absolute;
-  text-align: center;
+	box-sizing: border-box;
+display: inline;
+	 font-size: 10px;
+width: 100%;
+       line-height: 1;
+color: rgba(0, 0, 0, 0.8);
+content: "\25BC";
+position: absolute;
+	  text-align: center;
 }
 
 /* Style northward tooltips differently */
 .d3-tip.n:after {
-  margin: -1px 0 0 0;
-  top: 100%;
-  left: 0;
+margin: -1px 0 0 0;
+top: 100%;
+left: 0;
 }
 
 </style>
 <head>
-	<script src = "https://d3js.org/d3.v3.js"></script>
-	<script src = "https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<script src = "tooltip.js"></script>
+<script src = "https://d3js.org/d3.v3.js"></script>
+<script src = "https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src = "tooltip.js"></script>
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="/static/index.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">    
 </head>
 <body>
 <script>
+//Marco's code
 
-var diameter = 960,
-    format = d3.format(",d"),
-    color = d3.scale.category20c();
+var socket = io();
+socket.on('new_http', function (data) {
+		console.log("hello")
+		console.log(data);
+		eventHandler(data);
+		});
 
-	var bubble = d3.layout.pack()
-	.sort(null)
-.size([diameter, diameter])
-	.padding(1.5);
-	
+var historyMap = {};
 
-	var svg = d3.select("body").append("svg")
-	.attr("width", diameter)
-	.attr("height", diameter)
-	.attr("class", "bubble");
-
-
-	d3.json("flare.json", function(error, root) {
-			if (error) throw error;
-
-			var tip = d3.tip()
-	  		  .attr('class', 'd3-tip')
-	  		  .offset([-10, 0])
-	  		  .html(function(d){
-	    		    return "<strong>Pakcage:</strong> <span style='color:red'>" + d.packageName + "</span>";
-	  		  })
-
-			svg.call(tip);
-
-			var node = svg.selectAll(".node")
-			.data(bubble.nodes(classes(root))
-					.filter(function(d) { return !d.children; }))
-			.enter().append("g")
-			.attr("class", "node")
-			.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-
-			node.append("title")
-			.text(function(d) { return d.className + ": " + format(d.value); });
-
-			node.append("circle")
-			.attr("r", function(d) { return d.r; })
-			.on('mouseover', tip.show)
-			.on('mouseout', tip.hide)
-			.style("fill", function(d) { return color(d.packageName); });
-
-			node.append("text")
-			.attr("dy", ".3em")
-			.style("text-anchor", "middle")
-			.text(function(d) { return d.className.substring(0, d.r / 3); });
-
+var namesArr = [];
+var namesArr = [
+  {host: "Random.org", value: 1},
+  {host: "TEST.ORG", value: 2}
+]
+function eventHandler(data)
+{
+	for(i = 0; i < namesArr.length; i++){
+  	  if(namesArr[i].host === data.host){
+	    namesArr[i].value = (namesArr[i].value+1);
+	    return; 
+	  }
+	}
+	namesArr.push({
+	  host: data.host,
+	  value: 1
 	});
+}
+
+//End Marco's 
+var diameter = 960,
+format = d3.format(",d"),
+color = d3.scale.category20b();
+
+var bubble = d3.layout.pack()
+  .sort(null)
+  .size([diameter, diameter])
+  .padding(1.5);
+
+
+var svg = d3.select("body").append("svg")
+  .attr("width", diameter)
+  .attr("height", diameter)
+  .attr("class", "bubble");
+
+	//get the top 10 every certain seconds
+	/*d3.interval(function() {
+	  namesArr.sort(function(a, b){
+	  return parseFloat(parseFloat(a.price) - parseFloat(b.price));
+	  });
+
+	  var updateArr = [];
+	  for(i = 0; i < namesArr.length && i < 10; i++){
+	  updateArr.push(namesArr[i]);  	 
+	  }
+	  update(updateArr); 
+	  }, 1500); */
+
+	//defining update function
+indexes = {}
+host_data = []
+function update(new_data) {
+	if(indexes[new_data.host]) {
+		host_data[indexes[new_data.host]].value++;
+	}
+	else {
+		indexes[new_data.host] = host_data.length;
+		host_data.push(new_data)
+	}
+	render(host_data)
+}
+function render(data){
+	nodes = bubble.nodes({children: data}).filter(function(d) { return !d.children; });
+				
+
+    //bubbles needs very specific format, convert data to this.
+    var nodes = bubble.nodes({children:data}).filter(function(d) { return !d.children; });
+
+    //setup the chart
+    var bubbles = svg.append("g")
+        .attr("transform", "translate(0,0)")
+        .selectAll(".bubble")
+        .data(nodes)
+        .enter();
+
+    //create the bubbles
+    bubbles.append("circle")
+        .attr("r", function(d){ return d.r; })
+        .attr("cx", function(d){ return d.x; })
+        .attr("cy", function(d){ return d.y; })
+        .style("fill", function(d) { return color(d.value); });
+
+    //format the text for each bubble
+    bubbles.append("text")
+        .attr("x", function(d){ return d.x; })
+        .attr("y", function(d){ return d.y + 5; })
+        .attr("text-anchor", "middle")
+        .text(function(d){ return d.host; })
+        .style({
+            "fill":"white", 
+            "font-family":"Helvetica Neue, Helvetica, Arial, san-serif",
+            "font-size": "12px"
+        });
+
+
+    /*
+	if(data.length < 1)
+		return;
+
+	var tip = d3.tip()
+		.attr('class', 'd3-tip')
+		.offset([-10, 0])
+		.html(function(d){
+		  return "<strong>Pakcage:</strong> <span style='color:red'>" + d.value + "</span>";
+		})
+
+	svg.call(tip);
+
+	root = data; 
+	console.log(classes(data));
+	var node = svg.selectAll(".node")
+		.data(bubble.nodes(classes(root)))
+		// .filter(function(d) { console.log(d);return !d.children; }))
+		.enter().append("g")
+		.attr("class", "node")
+		.attr("transform", function(d) { console.log(d); return "translate(" + d.x + "," + d.y + ")"; });
+
+	node.append("title")
+		.text(function(d) { return d.className + ": " + format(d.value); });
+
+	node.append("circle")
+		.attr("r", function(d) { return d.r; })
+		.on('mouseover', tip.show)
+		.on('mouseout', tip.hide)
+		.style("fill", function(d) { return color(d.packageName); });
+
+	node.append("text")
+		.attr("dy", ".3em")
+		.style("text-anchor", "middle")
+		.text(function(d) { return d.host.substring(0, d.r / 3); });
+		*/
+}
+
+//get the top 10 and pass to the update func
+namesArr.sort(function(a, b){
+	return (a.value - b.value);
+});
+
+var updateArr = [];
+for(i = 0; i < namesArr.length && i < 10; i++){
+	updateArr.push(namesArr[i]);  	 
+}
+for(i=0; i < updateArr.length; i++) {
+	update(updateArr[i]); 
+}
+
+
 
 // Returns a flattened hierarchy containing all leaf nodes under the root.
 function classes(root) {
@@ -112,3 +222,6 @@ function classes(root) {
 d3.select(self.frameElement).style("height", diameter + "px");
 
 </script>
+</body>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</html>
